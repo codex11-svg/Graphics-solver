@@ -4,10 +4,8 @@ import google.generativeai as genai
 
 st.title("Engineering Graphics Solver 🚀")
 st.write(
-    "Input a classic engineering graphics question (e.g., pyramids, prisms, sections, with section planes).\n"
-    "You'll get:\n"
-    "1. Gemini AI detailed answer\n"
-    "2. Automated 2D exam-style diagram: FV, TV (sectioned/hatch), true shape\n"
+    "Input a classic engineering graphics question (e.g., pyramids, prisms, etc, with section).\n"
+    "See Gemini's stepwise answer **plus all six stages** of diagram construction for visual clarity."
 )
 
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
@@ -15,7 +13,6 @@ genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-2.5-flash')
 
 question = st.text_area("Enter your question:", height=140)
-
 if st.button("Solve") and question.strip():
     with st.spinner("Gemini is analyzing your question..."):
         try:
@@ -28,24 +25,26 @@ if st.button("Solve") and question.strip():
     typ = solver.classify_problem_type(question)
     if typ == 'hex_pyramid':
         params = solver.parse_hex_pyramid_section(question)
-        fig = solver.plot_hex_pyramid_conceptual(**params)
-        st.markdown("**Hexagonal Pyramid – Conceptual Views (Exam Style):**")
-        st.pyplot(fig)
+        stages = solver.plot_hex_pyramid_stages(**params)
+        for title, fig in stages:
+            st.markdown(f"**{title}**")
+            st.pyplot(fig)
     elif typ == 'square_prism':
         params = solver.parse_square_prism_section(question)
-        fig = solver.plot_square_prism_conceptual(**params)
-        st.markdown("**Square Prism – Conceptual Views (Exam Style):**")
-        st.pyplot(fig)
+        stages = solver.plot_square_prism_stages(**params)
+        for title, fig in stages:
+            st.markdown(f"**{title}**")
+            st.pyplot(fig)
     elif typ == 'tri_prism':
         params = solver.parse_tri_prism_section(question)
-        fig = solver.plot_tri_prism_conceptual(**params)
-        st.markdown("**Triangular Prism – Conceptual Views (Exam Style):**")
-        st.pyplot(fig)
-    # Placeholders for more: cylinder, cone, frustum, sphere, combined:
+        stages = solver.plot_tri_prism_stages(**params)
+        for title, fig in stages:
+            st.markdown(f"**{title}**")
+            st.pyplot(fig)
     else:
-        st.info("Conceptual diagrams auto-generate for pyramids/prisms with sections; more solids and views coming soon. Tell us your shape to add next!")
+        st.info("Staged conceptual diagrams: pyramid and prism cases supported. Tell us your next required solid/section!")
 
 st.markdown("""
-**Current support:** Hexagonal pyramid, square prism, triangular prism (with section planes, all views).<br>
-More solids (cylinder, cone, frustum, sphere, penetration) can be added immediately—just ask!
+**Six-stage visuals for each solid/section:** Construction, projections, section plane, intersection, sectional plan, true shape.  
+Want cylinders/cones/frustums/spheres/penetrations? Let us know!
 """, unsafe_allow_html=True)
