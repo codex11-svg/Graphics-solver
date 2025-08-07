@@ -4,10 +4,10 @@ import google.generativeai as genai
 
 st.title("Engineering Graphics Solver 🚀")
 st.write(
-    "Input a classic engineering graphics question (e.g., pyramids, prisms, cones, cylinders, frustums, intersection, with section planes)."
-    "\nYou get:\n"
-    "(1) Gemini AI - expert, stepwise text solution\n"
-    "(2) Automated conceptual exam-style 2D diagrams: Front/Elevation, Top/Plan (hatched if cut), True Shape (if inclined cut), with labels\n"
+    "Input a classic engineering graphics question (e.g., pyramids, prisms, sections, with section planes).\n"
+    "You'll get:\n"
+    "1. Gemini AI detailed answer\n"
+    "2. Automated 2D exam-style diagram: FV, TV (sectioned/hatch), true shape\n"
 )
 
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
@@ -17,7 +17,6 @@ model = genai.GenerativeModel('gemini-2.5-flash')
 question = st.text_area("Enter your question:", height=140)
 
 if st.button("Solve") and question.strip():
-    # Gemini answer
     with st.spinner("Gemini is analyzing your question..."):
         try:
             response = model.generate_content([question.strip()])
@@ -26,7 +25,6 @@ if st.button("Solve") and question.strip():
         except Exception as e:
             st.error(f"Error from Gemini: {e}")
 
-    # Classification + diagram selection
     typ = solver.classify_problem_type(question)
     if typ == 'hex_pyramid':
         params = solver.parse_hex_pyramid_section(question)
@@ -43,17 +41,11 @@ if st.button("Solve") and question.strip():
         fig = solver.plot_tri_prism_conceptual(**params)
         st.markdown("**Triangular Prism – Conceptual Views (Exam Style):**")
         st.pyplot(fig)
-    # elif typ == "cylinder": ... (to be added)
-    # elif typ == "cone": ... (to be added)
-    # elif typ == "frustum": ... (to be added)
-    # elif typ == "sphere": ... (to be added)
-    # elif typ == "combined": ... (to be added)
-
+    # Placeholders for more: cylinder, cone, frustum, sphere, combined:
     else:
-        st.info("Conceptual diagrams auto-generate for standard solids/sections; more types coming on request!")
+        st.info("Conceptual diagrams auto-generate for pyramids/prisms with sections; more solids and views coming soon. Tell us your shape to add next!")
 
 st.markdown("""
-**Currently supported:**<br>
-- Hexagonal pyramid, square prism, triangular prism—with section planes.<br>
-**Just ask to add cylinders, cones, frustums, spheres, intersecting solids and more!**
+**Current support:** Hexagonal pyramid, square prism, triangular prism (with section planes, all views).<br>
+More solids (cylinder, cone, frustum, sphere, penetration) can be added immediately—just ask!
 """, unsafe_allow_html=True)
