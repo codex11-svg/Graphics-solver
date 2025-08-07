@@ -4,6 +4,8 @@ import google.generativeai as genai
 import matplotlib.pyplot as plt
 from PIL import Image
 import io
+import numpy as np
+from streamlit_drawable_canvas import st_canvas
 
 # --- Gemini API Setup ---
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
@@ -15,7 +17,7 @@ model = genai.GenerativeModel('gemini-2.5-flash')
 
 st.title("Engineering Graphics Solver 🚀")
 st.write(
-    "Type your graphics or geometry question, and/or upload an image. "
+    "Type a graphics/geometry question, draw a diagram below, or upload an image. "
     "Get instant solutions powered by Gemini AI, plus interactive 2D calculations."
 )
 
@@ -27,16 +29,44 @@ question = st.text_area(
     height=100,
     help="Ask a technical drawing, construction, or geometry question."
 )
-image_file = st.file_uploader(
-    "Optionally upload a graphic or drawing (PNG, JPG, JPEG):",
-    type=["png", "jpg", "jpeg"]
+
+# --- Virtual Drawing Section ---
+st.subheader("Draw a Diagram Virtually")
+canvas_result = st_canvas(
+    fill_color="rgba(255, 165, 0, 0.3)",  # transparent orange
+    stroke_width=2,
+    stroke_color="#000000",
+    background_color="#FFFFFF",
+    height=300,
+    width=400,
+    drawing_mode="freedraw",   # Options: "freedraw", "line", "rect", etc.
+    key="canvas"
 )
 
-# Show image preview
+# Turn Canvas Result into Gemini-compatible image (if drawn)
+virtual_draw_bytes = None
+if canvas_result.image_data is not None:
+    try:
+        im_array = (canvas_result.image_data * 255).astype(np.uint8)
+        im_pil = Image.fromarray(im_array)
+        buf = io.BytesIO()
+        im_pil.save(buf, format="PNG")
+        virtual_draw_bytes = buf.getvalue()
+        st.image(im_pil, caption="Your Drawing", use_column_width=True)
+    except Exception:
+        st.warning("Couldn't process the drawn image.")
+
+# --- Optional File Upload Section ---
+image_file = st.file_uploader(
+    "Or, upload a graphic or drawing (PNG, JPG, JPEG):",
+    type=["png", "jpg", "jpeg"]
+)
+upload_bytes = None
 if image_file:
     try:
         img = Image.open(io.BytesIO(image_file.getvalue()))
         st.image(img, caption="Uploaded Image", use_column_width=True)
+        upload_bytes = image_file.read()
     except Exception:
         st.warning("Uploaded file could not be previewed as an image.")
 
@@ -54,7 +84,6 @@ if st.button("Solve Demo 2D Problem"):
         st.error("Error in calculation: " + sol["error"])
     else:
         st.success(f"Vertical Height: {sol['vertical_height']:.2f}")
-        # Plot triangle
         fig, ax = plt.subplots()
         ax.plot([0, sol['base']], [0, 0], 'bo-', label='Base')
         ax.plot([sol['base'], sol['base']], [0, sol['vertical_height']], 'ro-', label='Vertical')
@@ -65,23 +94,21 @@ if st.button("Solve Demo 2D Problem"):
         ax.set_title("Right Triangle Visualization")
         st.pyplot(fig)
 
+# --- Gemini AI Solution Section ---
 st.header("AI-Powered Gemini Solution")
 
 if st.button("Submit Question to Gemini"):
-    # Prepare Gemini prompt
+    from google.genai import types
     contents = []
     if question.strip():
         contents.append(question.strip())
-    if image_file:
-        try:
-            image_bytes = image_file.read()
-            from google.genai import types
-            contents.append(types.Part.from_bytes(data=image_bytes, mime_type=image_file.type))
-        except Exception as e:
-            st.error(f"Could not process uploaded image: {e}")
-    
+    # Prefer virtual draw (if any), otherwise uploaded image
+    if virtual_draw_bytes:
+        contents.append(types.Part.from_bytes(data=virtual_draw_bytes, mime_type="image/png"))
+    elif upload_bytes:
+        contents.append(types.Part.from_bytes(data=upload_bytes, mime_type=image_file.type))
     if not contents:
-        st.warning("Please enter a question or upload an image.")
+        st.warning("Please enter a question, draw a diagram, or upload an image.")
     else:
         with st.spinner("Gemini is analyzing your input..."):
             try:
