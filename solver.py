@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 
-# --- Utility for Problem Type ---
 def classify_problem_type(question):
     q = question.lower()
     if 'hexagonal' in q and 'pyramid' in q: return 'hex_pyramid'
@@ -14,8 +13,6 @@ def classify_problem_type(question):
     elif 'sphere' in q: return 'sphere'
     elif ('penetration' in q or 'intersection' in q or 'combined' in q): return 'combined'
     return None
-
-# --- Parameter extractors and plotters for each solid: ---
 
 def parse_hex_pyramid_section(question):
     base = re.search(r'base\s*(\d+(\.\d+)?)', question)
@@ -200,5 +197,4 @@ def plot_tri_prism_conceptual(base_side=35, axis_height=60, section_angle=45):
     ax.set_xlim(-rad2*1.5, rad2*1.5)
     ax.set_ylim(-rad2*1.2, rad2*1.35)
     return fig
-
-# Continue in this fashion! Add analogous functions for cylinder, cone, frustum, sphere, combined solids...
+    
