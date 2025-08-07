@@ -118,4 +118,3 @@ if st.button("Submit Question to Gemini"):
                 st.write(output_text)
             except Exception as e:
                 st.error(f"Error from Gemini: {e}")
-                
