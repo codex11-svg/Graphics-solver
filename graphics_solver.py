@@ -5,7 +5,7 @@ import google.generativeai as genai
 st.title("Engineering Graphics Solver 🚀")
 st.write(
     "Input a classic engineering graphics question (e.g., pyramids, prisms, etc, with section).\n"
-    "See Gemini's stepwise answer **plus all six stages** of diagram construction for visual clarity."
+    "See Gemini's stepwise answer **plus all six stages** of diagram construction."
 )
 
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
@@ -43,8 +43,4 @@ if st.button("Solve") and question.strip():
             st.pyplot(fig)
     else:
         st.info("Staged conceptual diagrams: pyramid and prism cases supported. Tell us your next required solid/section!")
-
-st.markdown("""
-**Six-stage visuals for each solid/section:** Construction, projections, section plane, intersection, sectional plan, true shape.  
-Want cylinders/cones/frustums/spheres/penetrations? Let us know!
-""", unsafe_allow_html=True)
+        
