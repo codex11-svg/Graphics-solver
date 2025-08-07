@@ -1,6 +1,6 @@
 streamlit
-numpy
 matplotlib
+numpy
 google-generativeai
-Pillow
 sympy
+Pillow
