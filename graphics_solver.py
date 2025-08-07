@@ -5,12 +5,13 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import io
 
-# Initialize Gemini
+# --- Gemini API Setup ---
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 if not GEMINI_API_KEY:
     st.error("Gemini API Key is missing. Please add it to Streamlit secrets.")
     st.stop()
 genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 st.title("Engineering Graphics Solver 🚀")
 st.write(
@@ -84,12 +85,10 @@ if st.button("Submit Question to Gemini"):
     else:
         with st.spinner("Gemini is analyzing your input..."):
             try:
-                response = genai.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=contents
-                )
+                response = model.generate_content(contents)
                 output_text = getattr(response, "text", None) or str(response)
                 st.success("Gemini AI Solution:")
                 st.write(output_text)
             except Exception as e:
                 st.error(f"Error from Gemini: {e}")
+                
